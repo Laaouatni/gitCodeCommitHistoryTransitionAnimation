@@ -3,14 +3,26 @@
     {
       owner: "laaouatni",
       repoName: "arduino-2024-2025-prove",
-      filePath: "december/componentsArduino/prova2/prova2.ino"
+      filePath: "/progettoLearningNovembre/laaEsp01/laaEsp01.ino"
     },
     {
       owner: "laaouatni",
       repoName: "arduino-2024-2025-prove",
-      filePath: "/progettoLearningNovembre/laaEsp01/laaEsp01.ino"
-    }
-  ]
+      filePath: "december/componentsArduino/prova2/prova2.ino"
+    },
+  ];
+
+  (async () => {
+    const allFiles = await Promise.all(
+      repos.map(async (repo) => {
+        return await fetchGithubAllCommitFiles(repo.owner, repo.repoName, repo.filePath);
+      })
+    ).then((allFiles) => {
+      return allFiles.flat();
+    });
+  
+    console.log(allFiles);
+  })();
 
   async function fetchGithubAllCommitFiles(
     owner: string,
