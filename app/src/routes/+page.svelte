@@ -7,31 +7,25 @@
 
   const apiUrlAllCommits = `https://api.github.com/repos/${owner}/${repoName}/commits?path=${filePath}`;
 
-  let allShaCommitCodes: string[] = $state([]);
-  let allRawFileCodes: string[] = $state([])
+  let allShaCommitCodes: string[] = []
+  let allRawFileCodes: string[] = []
 
   type TypeApiUrlAllCommits = {
     sha: string
   };
 
-  onMount(() => {
-    fetch(apiUrlAllCommits)
-      .then((response) => response.json())
-      .then((data: TypeApiUrlAllCommits[]) => {
-        data.forEach((thisCommit) => {
-          allShaCommitCodes = [...allShaCommitCodes, thisCommit.sha];
-        });
-      }).then(() => {
-        allShaCommitCodes.forEach((thisShaCode) => {
-          const rawUrl = `https://raw.githubusercontent.com/${owner}/${repoName}/${thisShaCode}/${filePath}`;
-          fetch(rawUrl)
-            .then((response) => response.text())
-            .then((thisVersionCode) => {
-              allRawFileCodes = [...allRawFileCodes, thisVersionCode];
-            });
-        });
-      }).then(() => {
-        console.log(allRawFileCodes);
-      })
+  onMount(async () => {
+    const fetchAllCommits = await fetch(apiUrlAllCommits);
+    const commitsData: TypeApiUrlAllCommits[] = await fetchAllCommits.json();
+    const allShaCommitCodes = commitsData.map((thisCommit: TypeApiUrlAllCommits) => thisCommit.sha);
+    const allRawUrl = allShaCommitCodes.map((thisShaCode) => `https://raw.githubusercontent.com/${owner}/${repoName}/${thisShaCode}/${filePath}`);
+    const allRawCodeFileStrings = Promise.all(allRawUrl.map(async (thisRawUrl) => {
+      const fetchRawFile = await fetch(thisRawUrl);
+      return await fetchRawFile.text();
+    }));
+    allRawFileCodes = await allRawCodeFileStrings;
+
+    console.log(allRawFileCodes);
   });
+
 </script>
