@@ -7,7 +7,8 @@
 
   const apiUrlAllCommits = `https://api.github.com/repos/${owner}/${repoName}/commits?path=${filePath}`;
 
-  let shaCommitVersionCodes: string[] = $state([]);
+  let allShaCommitCodes: string[] = $state([]);
+  let allRawFileCodes: string[] = $state([])
 
   type TypeApiUrlAllCommits = {
     sha: string
@@ -18,12 +19,19 @@
       .then((response) => response.json())
       .then((data: TypeApiUrlAllCommits[]) => {
         data.forEach((thisCommit) => {
-          shaCommitVersionCodes = [...shaCommitVersionCodes, thisCommit.sha];
+          allShaCommitCodes = [...allShaCommitCodes, thisCommit.sha];
         });
+      }).then(() => {
+        allShaCommitCodes.forEach((thisShaCode) => {
+          const rawUrl = `https://raw.githubusercontent.com/${owner}/${repoName}/${thisShaCode}/${filePath}`;
+          fetch(rawUrl)
+            .then((response) => response.text())
+            .then((thisVersionCode) => {
+              allRawFileCodes = [...allRawFileCodes, thisVersionCode];
+            });
+        });
+      }).then(() => {
+        console.log(allRawFileCodes);
       })
-  });
-
-  $effect(() => {
-    console.log(shaCommitVersionCodes);
   });
 </script>
